@@ -2,11 +2,28 @@
 title: "Test"
 slug: "test"
 date: "2025-04-20"
-githubUrl: "https://github.com/YOUR_USERNAME/task-manager-api"
+shortDescription: "This is just the begining of my note. Stay tune!"
 ---
 
-A RESTful API built with Node.js, Express, and MongoDB. Supports:
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-- JWT authentication  
-- CRUD operations for tasks  
-- Swagger documentation  
+<div class="d-flex justify-content-center align-items-center" style="height: 30vh;">
+  <h1 class="display-4 text-primary text-center">🚧 Just a test note, nothing too interesting... yet..</h1>
+</div>
+
+<div class="container">
+  <div class="alert alert-info text-center" role="alert">
+    <h4 class="alert-heading">Click below for a surprise.</h4>
+    <p>
+      <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#gifSpoiler" aria-expanded="false" aria-controls="gifSpoiler">
+        Show Surprise
+      </button>
+    </p>
+    <div class="collapse" id="gifSpoiler">
+      <div class="card card-body">
+        <img src="https://media.giphy.com/media/oUDtWSI1gJQJs8zGPG/giphy.gif" class="img-fluid" alt="Dancing Cat GIF">
+        <p class="mt-2"><a href="https://giphy.com/gifs/dancing-cat-mr-fluffy-and-felicity-oUDtWSI1gJQJs8zGPG" target="_blank">via GIPHY</a></p>
+      </div>
+    </div>
+  </div>
+</div>
