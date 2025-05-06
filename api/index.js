@@ -4,16 +4,16 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import notesRoutes from '../routes/notes.js';
-import currentProjRoutes from '../routes/currentProjects.js';
-import projectsRoutes from '../routes/githubProjects.js';
+import createNotesRoutes from '../routes/notes.js';
+import createCurrentProjRoutes from '../routes/currentProjects.js';
+import createProjectsRoutes from '../routes/githubProjects.js';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Sample usage if you want to read from /api/notes or /api/current-projects
+// Directory paths to markdown content
 const notesDirectory = path.join(__dirname, 'notes');
 const currentProjectsDirectory = path.join(__dirname, 'current-projects');
 
@@ -22,8 +22,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/notes', notesRoutes);
-app.use('/api/current-projects', currentProjRoutes);
-app.use('/api/projects', projectsRoutes);
+// Inject directories or settings into routes
+app.use('/api/notes', createNotesRoutes(notesDirectory));
+app.use('/api/current-projects', createCurrentProjRoutes(currentProjectsDirectory));
+app.use('/api/projects', createProjectsRoutes());
 
 export default app;
