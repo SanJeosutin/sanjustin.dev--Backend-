@@ -8,10 +8,7 @@
   ],
   "functions": {
     "api/index.js": {
-      "includeFiles": [
-        "api/notes/**",
-        "api/current-projects/**"
-      ]
+      "includeFiles": "api/**"
     }
   }
 }
