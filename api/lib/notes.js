@@ -1,4 +1,3 @@
-// backend/src/lib/notes.js
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
@@ -9,7 +8,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import rehypeStringify from 'rehype-stringify'
 
-const notesDir = path.join(process.cwd(), 'src', 'notes')
+const notesDir = path.join(process.cwd(), 'api', 'notes')
 
 /**
  * Return metadata for all notes, sorted by date descending.

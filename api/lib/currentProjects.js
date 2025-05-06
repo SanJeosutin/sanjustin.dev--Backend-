@@ -8,7 +8,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import rehypeStringify from 'rehype-stringify'
 
-const projectsDir = path.join(process.cwd(), 'src', 'current-projects')
+const projectsDir = path.join(process.cwd(), 'api', 'current-projects')
 
 // Return metadata for all projects, sorted by date descending
 export function getAllCurrentProjects() {
