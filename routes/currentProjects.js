@@ -3,7 +3,7 @@ import { Router } from 'express'
 import {
     getAllCurrentProjects,
     getCurrentProjectData,
-} from '../lib/currentProjects.js'
+} from '../api/lib/currentProjects.js'
 
 const router = Router()
 

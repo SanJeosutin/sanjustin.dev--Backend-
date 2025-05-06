@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getAllNotes, getNoteData } from '../lib/notes.js'
+import { getAllNotes, getNoteData } from '../api/lib/notes.js'
 
 
 const router = Router()
