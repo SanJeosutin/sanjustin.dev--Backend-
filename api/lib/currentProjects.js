@@ -7,8 +7,8 @@ import rehypeRaw from 'rehype-raw';
 import rehypeStringify from 'rehype-stringify';
 import { google } from 'googleapis';
 
-// Google Drive authentication setup
-const auth = new google.auth.GoogleAuth({
+// Google Drive auth
+const auth  = new google.auth.GoogleAuth({
   keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
   scopes: ['https://www.googleapis.com/auth/drive.readonly'],
 });
@@ -18,32 +18,45 @@ const drive = google.drive({ version: 'v3', auth });
  * Return metadata for all projects from Google Drive, sorted by date descending.
  */
 export async function getAllCurrentProjects() {
-  const client = await auth.getClient();
+  const client   = await auth.getClient();
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID_CURRENT_PROJECTS;
 
-  // List all markdown files in the Drive folder
-  const listRes = await drive.files.list({
+  // List with mimeType
+  const { data: { files = [] } } = await drive.files.list({
     auth: client,
     q: `'${folderId}' in parents and name contains '.md'`,
-    fields: 'files(id,name)',
+    fields: 'files(id,name,mimeType)',
   });
+  console.log('[getAllCurrentProjects] files:', files);
 
-  const projects = [];
-  for (const file of listRes.data.files || []) {
-    // Download file content
-    const fileRes = await drive.files.get(
-      { fileId: file.id, alt: 'media' },
-      { responseType: 'text' }
-    );
-    // Parse frontmatter
-    const { data: frontmatter } = matter(fileRes.data.toString());
-    projects.push({
+  // Download & parse each
+  const projects = await Promise.all(files.map(async file => {
+    let rawText;
+
+    if (file.mimeType === 'application/vnd.google-apps.document') {
+      // exported Google Doc
+      const { data } = await drive.files.export(
+        { fileId: file.id, mimeType: 'text/plain' },
+        { responseType: 'text' }
+      );
+      rawText = data;
+    } else {
+      // true .md file
+      const { data } = await drive.files.get(
+        { fileId: file.id, alt: 'media' },
+        { responseType: 'text' }
+      );
+      rawText = data;
+    }
+
+    const { data: frontmatter } = matter(rawText);
+    return {
       slug: file.name.replace(/\.md$/, ''),
       ...frontmatter,
-    });
-  }
+    };
+  }));
 
-  // Sort by date descending
+  // 3) Sort descending by date
   return projects.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
@@ -51,33 +64,45 @@ export async function getAllCurrentProjects() {
  * Return full project data (metadata + HTML) for one slug from Google Drive.
  */
 export async function getCurrentProjectData(slug) {
-  const client = await auth.getClient();
+  const client   = await auth.getClient();
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID_CURRENT_PROJECTS;
   const fileName = `${slug}.md`;
 
-  // Find the file by name
-  const listRes = await drive.files.list({
+  // Find file
+  const { data: { files = [] } } = await drive.files.list({
     auth: client,
     q: `'${folderId}' in parents and name='${fileName}'`,
-    fields: 'files(id,name)',
+    fields: 'files(id,name,mimeType)',
   });
-  const files = listRes.data.files || [];
+  console.log(`[getCurrentProjectData] lookup for "${slug}":`, files);
+
   if (files.length === 0) {
     throw new Error(`Project "${slug}" not found`);
   }
 
-  // Download file content
-  const fileRes = await drive.files.get(
-    { fileId: files[0].id, alt: 'media' },
-    { responseType: 'text' }
-  );
-  const { data: frontmatter, content } = matter(fileRes.data.toString());
+  // Download raw text
+  const file    = files[0];
+  let rawText;
+  if (file.mimeType === 'application/vnd.google-apps.document') {
+    const { data } = await drive.files.export(
+      { fileId: file.id, mimeType: 'text/plain' },
+      { responseType: 'text' }
+    );
+    rawText = data;
+  } else {
+    const { data } = await drive.files.get(
+      { fileId: file.id, alt: 'media' },
+      { responseType: 'text' }
+    );
+    rawText = data;
+  }
 
-  // Convert markdown to HTML
+  // Parse frontmatter + markdown→HTML
+  const { data: frontmatter, content } = matter(rawText);
   const processed = await unified()
     .use(remarkParse)
     .use(remarkGfm)
-    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(remarkRehype,    { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeStringify)
     .process(content);
