@@ -12,27 +12,30 @@ import createProjectsRoutes from '../routes/githubProjects.js';
 
 dotenv.config();
 
-// Base64 decode service account JSON and write to OS temp directory
-const b64 = process.env.GOOGLE_CREDENTIALS_B64;
-if (b64) {
+// Decode Base64 service account JSON once and write to temp file
+const tmpSaPath = path.join(os.tmpdir(), 'sa.json');
+if (!fs.existsSync(tmpSaPath)) {
+  const rawBase64 = process.env.GOOGLE_CREDENTIALS_B64;
+  if (!rawBase64) {
+    console.error('Environment variable GOOGLE_CREDENTIALS_B64 is not set');
+    process.exit(1);
+  }
+
   try {
-    const raw = Buffer.from(b64, 'base64').toString('utf8');
-    const sa = JSON.parse(raw);
-    const tmpDir = os.tmpdir();
-    const saPath = path.join(tmpDir, 'service-account.json');
-    fs.writeFileSync(saPath, JSON.stringify(sa));
-    process.env.GOOGLE_APPLICATION_CREDENTIALS = saPath;
-    console.log(`Service account credentials written to ${saPath}`);
+    const saJson = Buffer.from(rawBase64, 'base64').toString('utf8');
+    fs.writeFileSync(tmpSaPath, saJson);
   } catch (err) {
-    console.error('Failed to parse or write service account JSON:', err);
+    console.error('Failed to decode/write service account JSON:', err);
     process.exit(1);
   }
 }
+// Point Google client libs to the temp file
+process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpSaPath;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Directory paths to markdown content
+// Directory paths to markdown content (if using local fallback)
 const notesDirectory = path.join(__dirname, 'notes');
 const currentProjectsDirectory = path.join(__dirname, 'current-projects');
 

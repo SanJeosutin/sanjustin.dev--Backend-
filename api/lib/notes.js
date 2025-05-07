@@ -22,7 +22,7 @@ export async function getAllNotes() {
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID_NOTES;
   const listRes  = await drive.files.list({
     auth: client,
-    q: `'\${folderId}' in parents and name contains '.md'`,
+    q: `'${folderId}' in parents and name contains '.md'`,
     fields: 'files(id,name)',
   });
 
