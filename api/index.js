@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 import createNotesRoutes from '../routes/notes.js';
@@ -11,20 +12,21 @@ import createProjectsRoutes from '../routes/githubProjects.js';
 
 dotenv.config();
 
-// Decode service account JSON from environment variable
-if (process.env.GOOGLE_CREDENTIALS) {
+// Base64 decode service account JSON and write to OS temp directory
+const b64 = process.env.GOOGLE_CREDENTIALS_B64;
+if (b64) {
   try {
-    const sa = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-    // Write to temporary file for libraries expecting a file path
-    const tmpPath = '/tmp/service-account.json';
-    fs.writeFileSync(tmpPath, JSON.stringify(sa));
-    process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpPath;
-    console.log('Loaded Google service account credentials from env');
+    const raw = Buffer.from(b64, 'base64').toString('utf8');
+    const sa = JSON.parse(raw);
+    const tmpDir = os.tmpdir();
+    const saPath = path.join(tmpDir, 'service-account.json');
+    fs.writeFileSync(saPath, JSON.stringify(sa));
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = saPath;
+    console.log(`Service account credentials written to ${saPath}`);
   } catch (err) {
-    console.error('Failed to parse GOOGLE_CREDENTIALS:', err);
+    console.error('Failed to parse or write service account JSON:', err);
+    process.exit(1);
   }
-} else {
-  console.warn('GOOGLE_CREDENTIALS env var not set. Google Drive API will not be authenticated.');
 }
 
 const __filename = fileURLToPath(import.meta.url);
