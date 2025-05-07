@@ -51,7 +51,7 @@ export async function getNoteData(slug) {
   const fileName = `${slug}.md`;
   const listRes  = await drive.files.list({
     auth: client,
-    q: `'\${folderId}' in parents and name='${fileName}'`,
+    q: `'${folderId}' in parents and name='${fileName}'`,
     fields: 'files(id,name)',
   });
 
